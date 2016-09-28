@@ -3,7 +3,17 @@
 
 using namespace std;
 
+/*  This is a cool calculator program
+
+    Some Definitions =>
+        'E' -> Error
+
+ */
+
 double convertDouble(char a[]) {
+    // This Fxn Converts a char to double
+    // It neglects all alphabets
+    // It can also handle decimals
     double x = 0.0;
     double m = 10, n = 1; // to change when '.' is found
     for (size_t i = 0; i < strlen(a); i++) {
@@ -27,12 +37,13 @@ struct nums {
 };
 
 class StackOperands {
+    // A stack to store operands
     nums *start;
 public:
     StackOperands() {
         start = NULL;
     }
-    void push(int n) {
+    void push(double n) {
         nums *nn = new nums;
         nn -> value = n;
         nn -> next = NULL;
@@ -55,6 +66,17 @@ public:
             return 'E';
         }
     }
+
+    double top() {
+        // Returns the top element w/o deleting it
+        if (start != NULL) {
+            return start -> value;
+        } else {
+            std::cout << "ERROR" << std::endl;
+            return 0.0;
+        }
+    }
+
     void display() {
         nums *t = start;
         while(t != NULL) {
@@ -99,7 +121,9 @@ public:
             std::cout << "Operator Invalid" << std::endl;
         }
     }
+
     char pop() {
+        // reurns the topmos operator after deleting it from stack
         if (start != NULL) {
             char k = start -> ops;
             operators *x = start;
@@ -111,6 +135,15 @@ public:
             return 'E';
         }
     }
+
+    char top() {
+        if (start != NULL) {
+            return start -> ops;
+        } else {
+            return 'E';
+        }
+    }
+
     void display() {
         operators *t = start;
         while(t != NULL) {
