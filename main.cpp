@@ -8,6 +8,8 @@ using namespace std;
     Some Definitions =>
         'E' -> Error
 
+    Commented lines are nice for debugging
+
  */
 
 double convertDouble(char a[]) {
@@ -31,61 +33,19 @@ double convertDouble(char a[]) {
     return x;
 }
 
-struct nums {
-    double value;
-    nums *next;
-};
-
-class StackOperands {
-    // A stack to store operands
-    nums *start;
-public:
-    StackOperands() {
-        start = NULL;
-    }
-    void push(double n) {
-        nums *nn = new nums;
-        nn -> value = n;
-        nn -> next = NULL;
-        if (start == NULL) {
-            start = nn;
-        } else {
-            nn -> next = start;
-            start = nn;
+void strip(char a[]) {
+    int c = 0;
+    size_t i;
+    for (i = 0; a[i+c] != '\0'; i++) {
+        if (a[i+c] == ' ') {
+            c++;
         }
+        a[i] = a[i+c];
+        // std::cout << a << std::endl;
     }
-    double pop() {
-        if (start != NULL) {
-            double k = start -> value;
-            nums *x = start;
-            start = start -> next;
-            delete x;
-
-            return k;
-        } else {
-            return 'E';
-        }
-    }
-
-    double top() {
-        // Returns the top element w/o deleting it
-        if (start != NULL) {
-            return start -> value;
-        } else {
-            std::cout << "ERROR" << std::endl;
-            return 0.0;
-        }
-    }
-
-    void display() {
-        nums *t = start;
-        while(t != NULL) {
-            std::cout << t -> value << " ";
-            t = t->next;
-        }
-        std::cout << std::endl;
-    }
-};
+    // std::cout << c << std::endl;
+    a[i++] = '\0';
+}
 
 int checkValid(char t) {
     if (t == '*' || t == '+' || t == '-' || t == '/' || t == '%') {
@@ -95,72 +55,114 @@ int checkValid(char t) {
     }
 }
 
-struct operators {
-    char ops;
-    operators *next;
+
+struct element {
+    char op;
+    double value;
+    char type;
+    element *next;
 };
 
-class StackOperators {
-    operators *start;
+class MultiStack {
+    element *start;
 public:
-    StackOperators() {
+    MultiStack() {
         start = NULL;
     }
-    void push(char op) {
-        if (checkValid(op)) {
-            operators *nn = new operators;
-            nn -> ops = op;
-            nn -> next = NULL;
-            if (start == NULL) {
-                start = nn;
-            } else {
-                nn -> next = start;
-                start = nn;
-            }
+    void push(element k) {
+        element *nn = new element;
+        nn -> op = k.op;
+        nn -> value = k.value;
+        nn -> type = k.type;
+        nn -> next = NULL;
+        if (start == NULL) {
+            start = nn;
         } else {
-            std::cout << "Operator Invalid" << std::endl;
+            nn -> next = start;
+            start = nn;
         }
     }
 
-    char pop() {
+    element pop() {
         // reurns the topmos operator after deleting it from stack
         if (start != NULL) {
-            char k = start -> ops;
-            operators *x = start;
+            element x = *start;
             start = start -> next;
-            delete x;
-
-            return k;
-        } else {
-            return 'E';
+            return x;
         }
     }
 
-    char top() {
+    element top() {
         if (start != NULL) {
-            return start -> ops;
-        } else {
-            return 'E';
+            element n = *start;
+            return n;
         }
     }
 
     void display() {
-        operators *t = start;
+        element *t = start;
         while(t != NULL) {
-            std::cout << t -> ops << " ";
+            if (t->type == 'o') {
+                std::cout << t->op << " ";
+            } else if (t->type == 'n') {
+                std::cout << t->value << " ";
+            }
             t = t->next;
         }
         std::cout << std::endl;
     }
 };
 
+void parse(char a[], MultiStack &stack, MultiStack &pfx) {
+    strip(a);
+    char num[20];
+    int k = 0;
 
-void parse(){
-    // to be done
+    for (size_t i = 0; i < strlen(a); i++) {
+
+        if ((a[i] < 58 && a[i] > 47) || a[i] == 46) {
+            std::cout << "found number" << std::endl;
+            num[k++] = a[i];
+
+            if ((i == strlen(a)-1) || checkValid(a[i+1])) {
+                num[k] = '\0';
+                k = 0;
+
+                element tmp;
+                tmp.type = 'n';
+                tmp.value = convertDouble(num);
+
+                pfx.push(tmp);
+                // pfx.display();
+            }
+        } else if (checkValid(a[i])) {
+            // std::cout << "Hi" << std::endl;
+            element tmp;
+            tmp.type = 'o';
+            tmp.op = a[i];
+
+            stack.push(tmp);
+            // stack.display();
+        }
+    }
 }
 
 int main() {
-    char a[] = "0.001";
-    std::cout << convertDouble(a)*2 << std::endl;
+    MultiStack stack, pfx;
+
+    char x[80];
+    std::cout << " >> ";
+    cin.getline(x, 80);
+
+    parse(x, stack, pfx);
+
+    pfx.display();
+    stack.display();
+
+
+    // char a[90] = "x + y + u 98 . 88";
+    // std::cout << a << std::endl;
+    // strip(a);
+    // std::cout << a << std::endl;
     return 0;
 }
