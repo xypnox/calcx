@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 #define as_string( s ) # s
 
@@ -17,8 +18,8 @@ using namespace std;
  */
 
 double ANSWER=0.0;
-
 double convertDouble(char a[]) {
+
     // This Fxn Converts a char to double
     // It neglects all alphabets
     // It can also handle decimals
@@ -36,7 +37,11 @@ double convertDouble(char a[]) {
             n = 0.1;
         }
     }
-    return x;
+    if (a[0] == '_') {
+        return ANSWER;
+    } else {
+        return x;
+    }
 }
 
 void strip(char a[]) {
@@ -53,7 +58,7 @@ void strip(char a[]) {
 }
 
 int checkValid(char t) {
-    if (t == '*' || t == '+' || t == '-' || t == '/' || t == '%') {
+    if (t == '*' || t == '+' || t == '-' || t == '/' || t == '%' || t == '^') {
         return 1;
     } else {
         return 0;
@@ -66,9 +71,10 @@ double operate(double a1, double a2, char op) {
         case '-': return a1-a2; break;
         case '*': return a1*a2; break;
         case '/': return a1/a2; break;
+        case '%': return int(a1)%int(a2); break;
+        case '^': return pow(a1,a2); break;
         default: return -101;
     }
-
 }
 
 
@@ -217,7 +223,7 @@ void parse(char a[], MultiStack &stack, MultiStack &pfx) {
 
     for (size_t i = 0; i < strlen(a); i++) {
 
-        if ((a[i] < 58 && a[i] > 47) || a[i] == 46) {
+        if ((a[i] < 58 && a[i] > 47) || a[i] == 46 || a[i] == 95) {
             num[k++] = a[i];
 
             if ((i == strlen(a)-1) || checkValid(a[i+1])) {
@@ -235,9 +241,15 @@ void parse(char a[], MultiStack &stack, MultiStack &pfx) {
             tmp.type = emp.type = 'o';
             tmp.op = a[i];
 
-            if ((tmp.op == '-' || tmp.op == '+') && (stack.topOp() == '*' || stack.topOp() == '/')) {
+            if ((tmp.op == '/' || tmp.op == '*' || tmp.op == '%') && (stack.topOp() == '^')) {
                 emp.op = stack.popOp();
-                while (emp.op != 'E' || stack.topOp() == '*' || stack.topOp() == '/' ) {
+                while (emp.op != 'E' || stack.topOp() == '^') {
+                    pfx.push(emp);
+                    emp.op = stack.popOp();
+                }
+            } else if ((tmp.op == '-' || tmp.op == '+') && (stack.topOp() == '*' || stack.topOp() == '/' || stack.topOp() == '%')) {
+                emp.op = stack.popOp();
+                while (emp.op != 'E' || stack.topOp() == '*' || stack.topOp() == '/' || stack.topOp() == '%' ) {
                     pfx.push(emp);
                     emp.op = stack.popOp();
                 }
@@ -290,6 +302,9 @@ double evaluate(MultiStack &pfx) {
 
     }
 
+    if (ret!=-101) {
+        ANSWER = ret;
+    }
     return ret;
 }
 
