@@ -22,8 +22,10 @@ using namespace std;
     It is essentially quite elegant and extendable.
 
  */
-
 double ANSWER=0.0;
+double E=2.71828182846;
+double PI=3.14159265359;
+
 double convertDouble(char a[]) {
 
     // This Fxn Converts a char to double
@@ -45,6 +47,10 @@ double convertDouble(char a[]) {
     }
     if (a[0] == '_') {
         return ANSWER;
+    } else if (a[0] == 'P') {
+        return PI;
+    } else if (a[0] == 'e') {
+        return E;
     } else {
         return x;
     }
@@ -312,7 +318,11 @@ void parse(char a[], MultiStack &pfx) {
 
     for (size_t i = 0; i < strlen(a); i++) {
 
-        if ((a[i] < 58 && a[i] > 47) || a[i] == 46 || a[i] == 95) {
+        if ((a[i] < 58 && a[i] > 47) ||
+            a[i] == '.' ||
+            a[i] == '_' ||
+            a[i] == 'P' ||
+            a[i] == 'e') {
             num[k++] = a[i];
 
             if ((i == strlen(a)-1) || checkValid(a[i+1])) {
