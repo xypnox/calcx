@@ -77,12 +77,29 @@ double operate(double a1, double a2, char op) {
     }
 }
 
+int precedence(char op) {
+    if (op == '+' || op == '-') {
+        return 0;
+    } else if (op == '*' || op == '/' || op == '%') {
+        return 1;
+    } else if (op == '^') {
+        return 2;
+    } else {
+        return 3;
+    }
+}
+
 
 class element {
 public:
-    char op;
-    double value;
-    char type;
+    char type;  // to store wether operator -> 'o' or number -> 'n'
+
+    char op;    // to store operators
+    int prcd;   // to store precedence of the operator, greater value for higher precedence
+
+    double value;   // to store value of number
+
+
     element *next;
     element *prev;
 
@@ -108,6 +125,7 @@ public:
         element *nn = new element;
         if (k.type == 'o') {
             nn -> op = k.op;
+            nn -> prcd = precedence(k.op);
         } else {
             nn -> value = k.value;
         }
@@ -161,11 +179,18 @@ public:
             ret = start->value;
             start = last = NULL;
             length--;
-        } else if (length != 0 && last->type=='n') {
+        } else if (length != 0 && last->type=='n' && pos == 'l') {
             ret = last->value;
             element *x = last;
             x->prev->next = NULL;
             last = last->prev;
+            delete x;
+            length--;
+        } else if (length != 0 && start->type=='n' && pos == 'f') {
+            ret = start->value;
+            element *x = start;
+            x->next->prev = NULL;
+            start = start->next;
             delete x;
             length--;
         }
@@ -188,11 +213,27 @@ public:
         }
     }
 
+    int lastPrecedence() {
+        if (start != NULL) {
+            return last->prcd;
+        } else {
+            return -101;
+        }
+    }
+
     char topOp() {
         if (start != NULL) {
             return start->op;
         } else {
             return 'E';
+        }
+    }
+
+    int topPrecedence() {
+        if (start != NULL) {
+            return start->prcd;
+        } else {
+            return -101;
         }
     }
 
@@ -237,24 +278,23 @@ void parse(char a[], MultiStack &stack, MultiStack &pfx) {
                 pfx.push(tmp);
             }
         } else if (checkValid(a[i])) {
-            element tmp, emp;
-            tmp.type = emp.type = 'o';
+            element tmp;
+            tmp.type = 'o';
             tmp.op = a[i];
+            tmp.prcd = precedence(tmp.op);
 
-            if ((tmp.op == '/' || tmp.op == '*' || tmp.op == '%') && (stack.topOp() == '^')) {
-                emp.op = stack.popOp();
-                while (emp.op != 'E' || stack.topOp() == '^') {
-                    pfx.push(emp);
-                    emp.op = stack.popOp();
-                }
-            } else if ((tmp.op == '-' || tmp.op == '+') && (stack.topOp() == '*' || stack.topOp() == '/' || stack.topOp() == '%')) {
-                emp.op = stack.popOp();
-                while (emp.op != 'E' || stack.topOp() == '*' || stack.topOp() == '/' || stack.topOp() == '%' ) {
-                    pfx.push(emp);
-                    emp.op = stack.popOp();
+            if (tmp.prcd <= stack.topPrecedence()) {
+                while (!(tmp.prcd > stack.topPrecedence())) {
+                    element k;
+                    k.op = stack.popOp();
+                    k.prcd = precedence(k.op);
+                    k.type = 'o';
+
+                    pfx.push(k);
                 }
             }
             stack.push(tmp);
+
         }
     }
     element j;
@@ -279,10 +319,11 @@ double evaluate(MultiStack &pfx) {
         } else if (pfx.lastType() == 'o') {
             double a, b;
             char op = pfx.popOp('l');
-            if (calc.lastType() == 'n') {
-                a = calc.popNo();
-                if (calc.lastType() == 'n') {
-                    b = calc.popNo();
+
+            if (calc.topType() == 'n') {
+                a = calc.popNo('f');
+                if (calc.topType() == 'n') {
+                    b = calc.popNo('f');
                 } else {
                     std::cout << "ERROR : Syntax" << std::endl;
                     ret = -101;
@@ -293,12 +334,18 @@ double evaluate(MultiStack &pfx) {
                 ret = -101;
                 break;
             }
+
             element tmp;
-            tmp.value = operate(a, b, op);
+            tmp.value = operate(b, a, op);
             tmp.type = 'n';
             calc.push(tmp);
             ret = calc.topNo();
         }
+
+        // std::cout << "\nPFX: ";
+        // pfx.display();
+        // std::cout << "\nCALC: ";
+        // calc.display();
 
     }
 
@@ -321,6 +368,8 @@ int main() {
             cin.getline(x, 80);
 
             parse(x, stack, pfx);
+
+            pfx.display();
 
             double k = evaluate(pfx);
             if (k != -101) {
