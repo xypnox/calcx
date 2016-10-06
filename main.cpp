@@ -3,17 +3,23 @@
 #include <cstring>
 #include <cmath>
 
-#define as_string( s ) # s
-
-
 using namespace std;
 
-/*  This is a cool calculator program
+/*  This is a cool calculator program by @AdiUltra
 
     Some Definitions =>
         'E' -> Error
+        '-101' -> Error
 
-    Commented lines are nice for debugging
+        pfx -> prefix expression
+        prcd -> precedence of the operator
+
+        ANSWER -> previous answer of expression. It can be used as '_' in expressions
+
+
+    Commented code with //# lines are nice for debugging
+
+    It is essentially quite elegant and extendable.
 
  */
 
@@ -52,13 +58,44 @@ void strip(char a[]) {
             c++;
         }
         a[i] = a[i+c];
-        // std::cout << a << std::endl;
+        //# std::cout << a << std::endl;
     }
     a[i++] = '\0';
 }
 
+int checkBrackets(char a[]) {
+    int fbr = 0, bbr = 0, ck = 0;
+    for (size_t i = 0; i < strlen(a); i++) {
+        if (a[i] == '(') {
+            fbr++;
+            ck++;
+        } else if (a[i] == ')') {
+            bbr++;
+            ck--;
+            if (ck != 0) {
+                bbr = 56;
+                break;
+            }
+        }
+
+    }
+    if (fbr == bbr) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 int checkValid(char t) {
-    if (t == '*' || t == '+' || t == '-' || t == '/' || t == '%' || t == '^') {
+    if (t == '*' ||
+        t == '+' ||
+        t == '-' ||
+        t == '/' ||
+        t == '%' ||
+        t == '^' ||
+        t == '(' ||
+        t == ')') {
+
         return 1;
     } else {
         return 0;
@@ -84,8 +121,10 @@ int precedence(char op) {
         return 1;
     } else if (op == '^') {
         return 2;
+    } else if (op == '(' || op == ')') {
+        return -1;
     } else {
-        return 3;
+        return 4;
     }
 }
 
@@ -115,12 +154,15 @@ public:
 class MultiStack {
     element *start;
     element *last;
+
     int length;
+
 public:
     MultiStack() {
-        start = NULL;
+        start = last = NULL;
         length = 0;
     }
+
     void push(element k) {
         element *nn = new element;
         if (k.type == 'o') {
@@ -254,11 +296,17 @@ public:
         std::cout << std::endl;
     }
 
+    void empty() {
+        start = last = NULL;
+        length = 0;
+    }
+
     int len() { return length; }
 };
 
-void parse(char a[], MultiStack &stack, MultiStack &pfx) {
+void parse(char a[], MultiStack &pfx) {
     strip(a);
+    MultiStack stack;
     char num[20];
     int k = 0;
 
@@ -277,13 +325,28 @@ void parse(char a[], MultiStack &stack, MultiStack &pfx) {
 
                 pfx.push(tmp);
             }
+
         } else if (checkValid(a[i])) {
+
             element tmp;
             tmp.type = 'o';
             tmp.op = a[i];
             tmp.prcd = precedence(tmp.op);
 
-            if (tmp.prcd <= stack.topPrecedence()) {
+            if (tmp.op == ')') {
+                element k;
+                k.op = stack.popOp();
+                k.prcd = precedence(k.op);
+                k.type = 'o';
+                while (k.op != '(' && k.op != 'E') {
+                    pfx.push(k);
+                    k.op = stack.popOp();
+                    k.prcd = precedence(k.op);
+                    k.type = 'o';
+                }
+            } else if (tmp.op == '(') {
+                // Do nothing, Just Push
+            } else if (tmp.prcd <= stack.topPrecedence()) {
                 while (!(tmp.prcd > stack.topPrecedence())) {
                     element k;
                     k.op = stack.popOp();
@@ -293,10 +356,17 @@ void parse(char a[], MultiStack &stack, MultiStack &pfx) {
                     pfx.push(k);
                 }
             }
-            stack.push(tmp);
-
+            if (tmp.op != ')') {
+                stack.push(tmp);
+            }
         }
+        //# std::cout << "PFX: ";
+        //# pfx.display();
+        //# std::cout << "STACK: ";
+        //# stack.display();
     }
+
+    // Transfer all operators left in stack to pfx
     element j;
     j.op = stack.popOp();
     j.type = 'o';
@@ -308,7 +378,9 @@ void parse(char a[], MultiStack &stack, MultiStack &pfx) {
 
 double evaluate(MultiStack &pfx) {
     MultiStack calc;
+
     double ret=-101;
+
     while (pfx.len() != 0) {
 
         if (pfx.lastType() == 'n') {
@@ -316,12 +388,14 @@ double evaluate(MultiStack &pfx) {
             tmp.value = pfx.popNo();
             tmp.type = 'n';
             calc.push(tmp);
+
         } else if (pfx.lastType() == 'o') {
             double a, b;
             char op = pfx.popOp('l');
 
             if (calc.topType() == 'n') {
                 a = calc.popNo('f');
+
                 if (calc.topType() == 'n') {
                     b = calc.popNo('f');
                 } else {
@@ -342,10 +416,10 @@ double evaluate(MultiStack &pfx) {
             ret = calc.topNo();
         }
 
-        // std::cout << "\nPFX: ";
-        // pfx.display();
-        // std::cout << "\nCALC: ";
-        // calc.display();
+        //# std::cout << "\nPFX: ";
+        //# pfx.display();
+        //# std::cout << "\nCALC: ";
+        //# calc.display();
 
     }
 
@@ -357,34 +431,40 @@ double evaluate(MultiStack &pfx) {
 
 
 int main() {
-    MultiStack stack, pfx;
+    MultiStack pfx;
 
     char x[80];
     while (1) {
-        if (!strcmp(x, "quit")*strcmp(x, "exit")) {
+        std::cout << " >> ";
+        cin.getline(x, 80);
+        if (!(strcmp(x, "quit")*strcmp(x, "exit")*strcmp(x, "q"))) {
             break;
-        } else {
-            std::cout << " >> ";
-            cin.getline(x, 80);
-
-            parse(x, stack, pfx);
-
-            pfx.display();
-
-            double k = evaluate(pfx);
-            if (k != -101) {
-                std::cout << k << std::endl;
-            }
         }
+
+        if (checkBrackets(x)) {
+            parse(x, pfx);
+        } else {
+            std::cout << "Brackets are crazy ;)" << std::endl;
+            continue;
+        }
+
+        //# pfx.display();
+
+        double k = evaluate(pfx);
+        if (k != -101) {
+            std::cout << ":= " <<  k << std::endl << std::endl;
+        }
+
+        pfx.empty();
     }
 
 
 
-    // pfx.display();
-    // stack.display();
-    // char a[90] = "x + y + u 98 . 88";
-    // std::cout << a << std::endl;
-    // strip(a);
-    // std::cout << a << std::endl;
+    //# pfx.display();
+    //# stack.display();
+    //# char a[90] = "x + y + u 98 . 88";
+    //# std::cout << a << std::endl;
+    //# strip(a);
+    //# std::cout << a << std::endl;
     return 0;
 }
