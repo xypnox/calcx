@@ -15,7 +15,7 @@ int checkBrackets(char a[]) {
         } else if (a[i] == ')') {
             bbr++;
             ck--;
-            if (ck != 0) {
+            if (ck < 0) {
                 bbr = 56;
                 break;
             }

@@ -78,7 +78,7 @@ int checkBrackets(char a[]) {
         } else if (a[i] == ')') {
             bbr++;
             ck--;
-            if (ck != 0) {
+            if (ck < 0) {
                 bbr = 56;
                 break;
             }
@@ -303,6 +303,12 @@ public:
     }
 
     void empty() {
+        element *t = start, *x;
+        while (t != NULL) {
+            x = t;
+            t = t->next;
+            delete x;
+        }
         start = last = NULL;
         length = 0;
     }
