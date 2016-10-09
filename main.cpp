@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <cmath>
+#include <vector>
 
 using namespace std;
 
@@ -25,6 +26,8 @@ using namespace std;
 double ANSWER=0.0;
 double E=2.71828182846;
 double PI=3.14159265359;
+
+std::vector<double> history;
 
 double convertDouble(char a[]) {
 
@@ -441,27 +444,45 @@ double evaluate(MultiStack &pfx) {
 
     if (ret!=-101) {
         ANSWER = ret;
+        history.push_back(ANSWER);
     }
     return ret;
 }
 
-
-int main() {
+int commander(char x[]) {
     MultiStack pfx;
 
-    char x[80];
-    while (1) {
-        std::cout << " >> ";
-        cin.getline(x, 80);
-        if (!(strcmp(x, "quit")*strcmp(x, "exit")*strcmp(x, "q"))) {
-            break;
-        }
+    if (!(strcmp(x, "quit")*strcmp(x, "exit")*strcmp(x, "q"))) {
+            return 0;
 
+    } else if (!(strcmp(x, "history")*strcmp(x, "hst"))) {
+
+        for (size_t i = 0; i < history.size(); i++) {
+            std::cout << i << "\t: " << history[i] << std::endl;
+        }
+        std::cout << std::endl;
+
+        return 1;
+
+    } else if (!(strcmp(x, "latest")*strcmp(x, "lst"))) {
+
+        if (history.size() > 10) {
+            for (size_t i = 0; i < 10; i++) {
+                std::cout << i+1 << "\t: " << history[history.size()-10+i] << std::endl;
+            }
+        } else {
+            for (size_t i = 0; i < history.size(); i++) {
+                std::cout << i+1 << "\t: " << history[i] << std::endl;
+            }
+        }
+        std::cout << std::endl;
+
+        return 1;
+    } else {
         if (checkBrackets(x)) {
             parse(x, pfx);
         } else {
             std::cout << "Brackets are crazy ;)" << std::endl;
-            continue;
         }
 
         //# pfx.display();
@@ -470,11 +491,9 @@ int main() {
         if (k != -101) {
             std::cout << ":= " <<  k << std::endl << std::endl;
         }
-
-        pfx.empty();
+        return 1;
     }
-
-
+    pfx.empty();
 
     //# pfx.display();
     //# stack.display();
@@ -482,5 +501,18 @@ int main() {
     //# std::cout << a << std::endl;
     //# strip(a);
     //# std::cout << a << std::endl;
+}
+
+int main() {
+
+    char x[80];
+    while (1) {
+        std::cout << " >> ";
+        cin.getline(x, 80);
+        if (!commander(x)) {
+            break;
+        }
+    }
+
     return 0;
 }
