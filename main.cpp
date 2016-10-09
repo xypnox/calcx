@@ -458,7 +458,7 @@ int commander(char x[]) {
     } else if (!(strcmp(x, "history")*strcmp(x, "hst"))) {
 
         for (size_t i = 0; i < history.size(); i++) {
-            std::cout << i << "\t: " << history[i] << std::endl;
+            std::cout << i+1 << "\t: " << history[i] << std::endl;
         }
         std::cout << std::endl;
 
@@ -477,6 +477,22 @@ int commander(char x[]) {
         }
         std::cout << std::endl;
 
+        return 1;
+    } else if (!(strcmp(x, "help"))) {
+        std::cout << "\n    * You can enter basic math expressions to be evaluated like this :" << std::endl;
+        std::cout << " >> 12 + (2 + 1)^3" << std::endl;
+        std::cout << "\n      Which will output :" << std::endl;
+        std::cout << ":= 39" << std::endl;
+        std::cout << "\n    * The previous answer is stored as \'_\' you can use it as :" << std::endl;
+        std::cout << " >> _ + _/3" << std::endl;
+        std::cout << "\n      Which will evaluate as 39 + 39/3 and output :" << std::endl;
+        std::cout << ":= 52" << std::endl;
+        std::cout << "\n    * You can also view history of answers by typing \'history\' or \'hst\' :" << std::endl;
+        std::cout << " >> hst" << std::endl;
+        std::cout << "1        : 39" << std::endl;
+        std::cout << "2        : 52" << std::endl;
+        std::cout << "    * Or just view the previous 10 answers by typing \'latest\' or \'lst\'" << std::endl;
+        std::cout << "\n ## Happy Computing ;p PS when done type \'q\' or \'quit\' to exit" << std::endl;
         return 1;
     } else {
         if (checkBrackets(x)) {
@@ -506,6 +522,10 @@ int commander(char x[]) {
 int main() {
 
     char x[80];
+
+    std::cout << "\nWelcome to CalcX - a smart calculator" << std::endl;
+    std::cout << "Type \'help\' hor help\n" << std::endl;
+
     while (1) {
         std::cout << " >> ";
         cin.getline(x, 80);
